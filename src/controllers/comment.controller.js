@@ -11,6 +11,56 @@ const getVideoComments = asyncHandler(async (req, res) => {
   //TODO: get all comments for a video
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = parseInt(page);
+  const limitNumber = parseInt(limit);
+  const comments = await Comment.aggregate([
+    {
+      $match: {
+        video: new new mongoose.Types.ObjectId(videoId)(),
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $skip: (pageNumber - 1) * limitNumber,
+    },
+    {
+      $limit: limitNumber,
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerDetails",
+      },
+    },
+    {
+      $unwind: "$ownerDetails",
+    },
+    {
+      _id: 1,
+      content: 1,
+      createdAt: 1,
+      "ownerDetails.username": 1,
+      "ownerDetails.avatar": 1,
+    },
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        page: pageNumber,
+        limit: limitNumber,
+        totalComments: comments.length,
+        comments,
+      },
+      "Comments retrieved successfully"
+    )
+  );
 });
 
 const addComment = asyncHandler(async (req, res) => {
