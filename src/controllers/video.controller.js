@@ -8,64 +8,62 @@ import {
 import { Video } from "../models/video.model.js";
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
-    const skip = (pageNumber - 1) * limitNumber;
 
-    const sortOrder = sortType === "asc" ? 1 : -1;
-    let matchConditions = {};
+  const pageNumber = parseInt(page, 10);
+  const limitNumber = parseInt(limit, 10);
+  const skip = (pageNumber - 1) * limitNumber;
 
-    if (query) {
-      matchConditions = {
-        $or: [
-          { title: { $regex: query, $options: "i" } }, // Search in title (case insensitive)
-          { description: { $regex: query, $options: "i" } }, // Search in description (case insensitive)
-        ],
-      };
-    }
-    if (userId) {
-      matchConditions.owner = new mongoose.Types.ObjectId(userId);
-    }
-    const videos = await Video.aggregate([
-      {
-        $match: matchConditions,
-      },
-      {
-        $sort: { [sortBy]: sortOrder },
-      },
-      {
-        $skip: skip,
-      },
-      {
-        $limit: limitNumber,
-      },
-      {
-        _id: 1,
-        videoFile: 1,
-        thumbnail: 1,
-        title: 1,
-        description: 1,
-        duration: 1,
-        views: 1,
-        isPublished: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        owner: 1,
-      },
-    ]);
+  const sortOrder = sortType === "asc" ? 1 : -1;
+  let matchConditions = {};
 
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          { page: pageNumber, limit: limitNumber, videos },
-          "Videos retrieved successfully"
-        )
-      );
-  });
+  if (query) {
+    matchConditions = {
+      $or: [
+        { title: { $regex: query, $options: "i" } }, // Search in title (case insensitive)
+        { description: { $regex: query, $options: "i" } }, // Search in description (case insensitive)
+      ],
+    };
+  }
+  if (userId) {
+    matchConditions.owner = new mongoose.Types.ObjectId(userId);
+  }
+  const videos = await Video.aggregate([
+    {
+      $match: matchConditions,
+    },
+    {
+      $sort: { [sortBy]: sortOrder },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limitNumber,
+    },
+    {
+      _id: 1,
+      videoFile: 1,
+      thumbnail: 1,
+      title: 1,
+      description: 1,
+      duration: 1,
+      views: 1,
+      isPublished: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      owner: 1,
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { page: pageNumber, limit: limitNumber, videos },
+        "Videos retrieved successfully"
+      )
+    );
 });
 
 const publishVideo = asyncHandler(async (req, res) => {
