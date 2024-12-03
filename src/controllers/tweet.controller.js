@@ -6,7 +6,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createTweet = asyncHandler(async (req, res) => {
-  //TODO: create tweet
   const { content } = req.body;
   const userId = req.user._id;
 
@@ -36,12 +35,6 @@ const createTweet = asyncHandler(async (req, res) => {
     {
       $unwind: "$ownerDetails",
     },
-    {
-      $addFields: {
-        userid: "$ownerDetails._id",
-      },
-    },
-
     {
       $project: {
         content: 1,
@@ -76,7 +69,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
 });
 
 const updateTweet = asyncHandler(async (req, res) => {
-  //TODO: update tweet
   const { tweetId } = req.params;
   const { content } = req.body;
 
@@ -99,7 +91,6 @@ const updateTweet = asyncHandler(async (req, res) => {
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  //TODO: delete tweet
   const { tweetId } = req.params;
 
   const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
@@ -107,7 +98,9 @@ const deleteTweet = asyncHandler(async (req, res) => {
     throw new ApiError(400, "error in deleting the tweet");
   }
 
-  return res.status(200).json(200, {}, "tweet deletedsuccessfully");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "tweet deleted successfully"));
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };
